@@ -1,10 +1,17 @@
 package com.example.intentexploration
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.provider.ContactsContract
+import android.provider.MediaStore
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.intentexploration.databinding.ActivityMainBinding
@@ -13,12 +20,49 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     val REQUEST_SELECT_CONTACT = 1
     val REQUEST_SELECT_TEMPLATE = 2
+    val REQUEST_CAMERA = 3
+
+    fun takePicture() {
+        val i = Intent()
+
+        i.action = MediaStore.ACTION_IMAGE_CAPTURE
+
+        startActivityForResult(i, REQUEST_CAMERA)
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        when (requestCode) {
+            REQUEST_CAMERA ->
+                if (grantResults.isNotEmpty() &&
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    takePicture()
+            } else {
+                Toast.makeText(this, "You need to grant permission to access camera", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // btn camera
+        binding.fabPhoto.setOnClickListener {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                // request ulang
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(android.Manifest.permission.CAMERA),
+                    REQUEST_CAMERA
+                )
+            } else {
+                takePicture()
+            }
+        }
 
         // btn send ditekan
         binding.btnSend.setOnClickListener {
@@ -70,6 +114,13 @@ class MainActivity : AppCompatActivity() {
                 val message = data?.getStringExtra(Intent.EXTRA_TEXT)
 
                 binding.txtMessage.setText(message)
+            }
+
+            if (requestCode == REQUEST_CAMERA) {
+                val extras = data!!.extras
+                val imageBitmap: Bitmap = extras!!.get("data") as Bitmap
+
+                binding.imgPhoto.setImageBitmap(imageBitmap)
             }
     }
 }

@@ -1,5 +1,6 @@
 package com.example.intentexploration
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -17,11 +18,17 @@ class MessageTemplateActivity : AppCompatActivity() {
         binding = ActivityMessageTemplateBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        val customMsg = intent.getStringExtra(Intent.EXTRA_TEXT)
+
         val templates:ArrayList<String> =
             arrayListOf("Let’s meet up!", "Have you worked on the project?",
                 "Movie time?", "Busy, do not disturb",
                 "Why you leave me?!", "Please pay me a visit. Urgent!",
                 "Please call me back")
+
+        if (customMsg != null) {
+            templates.add(customMsg)
+        }
 
         binding.recViewTemplate.layoutManager = LinearLayoutManager(this)
         binding.recViewTemplate.hasFixedSize()
